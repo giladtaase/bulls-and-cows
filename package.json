@@ -1,0 +1,25 @@
+{
+  "name": "bulls-and-cows",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/giladtaase/bulls-and-cows.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/giladtaase/bulls-and-cows/issues"
+  },
+  "homepage": "https://github.com/giladtaase/bulls-and-cows#readme",
+  "description": "",
+  "dependencies": {
+    "express": "^5.2.1",
+    "socket.io": "^4.8.3"
+  }
+}

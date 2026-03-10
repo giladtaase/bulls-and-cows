@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>בול פגיעה אונליין 🎯</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ========== 1. LOBBY: Create / Join ========== -->
+    <div id="lobbyScreen" class="container">
+        <h1>🎯 בול פגיעה</h1>
+        <p class="subtitle">אונליין — שני שחקנים, כל אחד מהמכשיר שלו</p>
+
+        <div class="lobby-actions">
+            <button class="lobby-btn create-btn" onclick="createRoom()">צור חדר חדש</button>
+
+            <div class="divider"><span>או</span></div>
+
+            <div class="join-section">
+                <p class="join-label">הצטרף לחדר קיים:</p>
+                <input type="text" id="joinCodeInput" class="code-input" maxlength="5" placeholder="הזן קוד" autocomplete="off" dir="ltr">
+                <button class="lobby-btn join-btn" onclick="joinRoom()">הצטרף</button>
+            </div>
+        </div>
+
+        <div id="lobbyMessage" class="message"></div>
+
+        <div class="rules">
+            <h3>📖 איך משחקים?</h3>
+            <p>1. שחקן אחד יוצר חדר ומשתף את הקוד</p>
+            <p>2. השחקן השני מצטרף עם הקוד</p>
+            <p>3. כל שחקן בוחר מספר סודי בן 4 ספרות</p>
+            <p>4. מנחשים לסירוגין — מי שמגלה ראשון מנצח! 🏆</p>
+            <p><strong>בול 🎯</strong> — ספרה נכונה במיקום הנכון</p>
+            <p><strong>פגיעה 🔥</strong> — ספרה נכונה במיקום שגוי</p>
+        </div>
+    </div>
+
+    <!-- ========== 2. WAITING: Room created, waiting for opponent ========== -->
+    <div id="waitingScreen" class="container" style="display:none;">
+        <h1>🎯 בול פגיעה</h1>
+        <div class="waiting-content">
+            <p class="waiting-text">החדר שלך מוכן!</p>
+            <div class="room-code-display">
+                <span class="room-code-label">קוד החדר:</span>
+                <div class="room-code-value" id="roomCodeDisplay">-----</div>
+                <button class="copy-btn" onclick="copyRoomCode()">📋 העתק</button>
+            </div>
+            <p class="waiting-sub">שתף את הקוד עם חבר וחכה שיצטרף...</p>
+            <div class="spinner"></div>
+            <div id="waitingMessage" class="message"></div>
+        </div>
+    </div>
+
+    <!-- ========== 3. SETUP: Pick your secret number ========== -->
+    <div id="setupScreen" class="container" style="display:none;">
+        <h1>🎯 בול פגיעה</h1>
+        <div class="setup-content">
+            <div class="room-badge" id="setupRoomBadge">חדר: -----</div>
+            <div class="player-badge" id="setupPlayerBadge">שחקן 1</div>
+            <p class="setup-instruction">בחר מספר סודי בן 4 ספרות שונות</p>
+            <div class="digit-inputs" id="setupDigits">
+                <input type="text" maxlength="1" class="digit-box" inputmode="numeric" autocomplete="off">
+                <input type="text" maxlength="1" class="digit-box" inputmode="numeric" autocomplete="off">
+                <input type="text" maxlength="1" class="digit-box" inputmode="numeric" autocomplete="off">
+                <input type="text" maxlength="1" class="digit-box" inputmode="numeric" autocomplete="off">
+            </div>
+            <button class="action-btn" onclick="submitSecret()">אישור ✔</button>
+            <div id="setupMessage" class="message"></div>
+            <div id="setupWaiting" class="setup-waiting" style="display:none;">
+                <div class="spinner small"></div>
+                <span>ממתין ליריב...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 4. GAME: Play ========== -->
+    <div id="gameScreen" class="game-wrapper" style="display:none;">
+        <div class="game-top-bar">
+            <h1>🎯 בול פגיעה</h1>
+            <div class="game-info-row">
+                <div class="room-badge small" id="gameRoomBadge">חדר: -----</div>
+                <div class="turn-indicator" id="turnIndicator">תור: <span id="turnName">שחקן 1</span></div>
+            </div>
+        </div>
+
+        <div class="game-panels">
+            <div class="player-panel" id="panel1">
+                <div class="panel-header p1-color">
+                    <span>🟦 שחקן 1</span>
+                    <span class="you-badge" id="youBadge1" style="display:none;">אתה</span>
+                    <span class="attempt-count" id="attempts1">0 ניחושים</span>
+                </div>
+                <div class="history-header">
+                    <span>ניחוש</span><span>🎯</span><span>🔥</span>
+                </div>
+                <div class="history" id="history1"></div>
+            </div>
+            <div class="player-panel" id="panel2">
+                <div class="panel-header p2-color">
+                    <span>🟥 שחקן 2</span>
+                    <span class="you-badge" id="youBadge2" style="display:none;">אתה</span>
+                    <span class="attempt-count" id="attempts2">0 ניחושים</span>
+                </div>
+                <div class="history-header">
+                    <span>ניחוש</span><span>🎯</span><span>🔥</span>
+                </div>
+                <div class="history" id="history2"></div>
+            </div>
+        </div>
+
+        <div class="game-input-area" id="gameInputArea">
+            <div class="current-turn-label" id="currentTurnLabel">🟦 התור שלך — נחש!</div>
+            <div class="digit-inputs" id="gameDigits">
+                <input type="text" maxlength="1" class="digit-box game-digit" inputmode="numeric" autocomplete="off">
+                <input type="text" maxlength="1" class="digit-box game-digit" inputmode="numeric" autocomplete="off">
+                <input type="text" maxlength="1" class="digit-box game-digit" inputmode="numeric" autocomplete="off">
+                <input type="text" maxlength="1" class="digit-box game-digit" inputmode="numeric" autocomplete="off">
+            </div>
+            <button class="action-btn" id="guessBtn" onclick="makeGuess()">נחש!</button>
+            <div id="gameMessage" class="message"></div>
+        </div>
+
+        <div class="waiting-turn" id="waitingTurn" style="display:none;">
+            <div class="spinner small"></div>
+            <span>ממתין לניחוש היריב...</span>
+        </div>
+    </div>
+
+    <!-- ========== 5. GAME OVER ========== -->
+    <div id="winScreen" class="container win-container" style="display:none;">
+        <div class="win-trophy" id="winEmoji">🏆</div>
+        <h1 id="winTitle">ניצחון!</h1>
+        <p id="winDetails"></p>
+        <div class="win-summary" id="winSummary"></div>
+        <button class="action-btn" id="rematchBtn" onclick="requestRematch()">משחק חוזר 🔄</button>
+        <div id="rematchMessage" class="message"></div>
+        <button class="new-game-btn" onclick="backToLobby()">חזרה ללובי</button>
+    </div>
+
+    <!-- ========== DISCONNECTED OVERLAY ========== -->
+    <div id="disconnectOverlay" class="overlay" style="display:none;">
+        <div class="overlay-content">
+            <div class="overlay-icon">😢</div>
+            <h2>היריב התנתק</h2>
+            <p>המשחק הסתיים</p>
+            <button class="action-btn" onclick="backToLobby()">חזרה ללובי</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
