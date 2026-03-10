@@ -1,136 +1,226 @@
-// ==================== Bulls & Cows Game ====================
+// ==================== Bulls & Cows — Two Players ====================
 
-let secret = [];
-let attempts = 0;
-let gameOver = false;
+const state = {
+    secrets: [null, null],      // secrets[0] = Player 1's secret, secrets[1] = Player 2's secret
+    attempts: [0, 0],
+    currentSetup: 0,            // 0 = setting up Player 1, 1 = Player 2
+    currentTurn: 0,             // 0 = Player 1's turn, 1 = Player 2's turn
+    gameOver: false,
+    phase: 'setup'              // 'setup' | 'transition' | 'game' | 'win'
+};
 
-// Generate a random 4-digit number with unique digits
-function generateSecret() {
-    const digits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-    // Shuffle
-    for (let i = digits.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [digits[i], digits[j]] = [digits[j], digits[i]];
-    }
-    // Take first 4, but ensure first digit is not 0
-    let result = digits.slice(0, 4);
-    if (result[0] === 0) {
-        // Swap with a non-zero digit from the remaining
-        const nonZeroIdx = result.findIndex(d => d !== 0);
-        [result[0], result[nonZeroIdx]] = [result[nonZeroIdx], result[0]];
-    }
-    return result;
-}
+// ==================== Utility ====================
 
-// Calculate bulls and hits
 function calcResult(guess, secret) {
-    let bulls = 0;
-    let hits = 0;
+    let bulls = 0, hits = 0;
     for (let i = 0; i < 4; i++) {
-        if (guess[i] === secret[i]) {
-            bulls++;
-        } else if (secret.includes(guess[i])) {
-            hits++;
-        }
+        if (guess[i] === secret[i]) bulls++;
+        else if (secret.includes(guess[i])) hits++;
     }
     return { bulls, hits };
 }
 
-// DOM Elements
-const digitInputs = document.querySelectorAll('.digit-box');
-const guessBtn = document.getElementById('guessBtn');
-const messageEl = document.getElementById('message');
-const historyEl = document.getElementById('history');
+function validateDigits(inputs) {
+    const digits = [];
+    for (const input of inputs) {
+        const val = input.value.trim();
+        if (!/^\d$/.test(val)) return { valid: false, digits: [], error: 'יש להזין 4 ספרות!' };
+        digits.push(parseInt(val));
+    }
+    if (new Set(digits).size !== 4) return { valid: false, digits: [], error: 'כל הספרות חייבות להיות שונות!' };
+    return { valid: true, digits, error: '' };
+}
 
-// Auto-advance between digit boxes
-digitInputs.forEach((input, idx) => {
-    input.addEventListener('input', (e) => {
-        const val = e.target.value;
-        // Only allow single digit
-        if (!/^\d$/.test(val)) {
-            e.target.value = '';
-            return;
-        }
-        // Move to next box
-        if (idx < 3) {
-            digitInputs[idx + 1].focus();
-        }
+function wireDigitInputs(inputs, onEnter) {
+    inputs.forEach((input, idx) => {
+        input.addEventListener('input', (e) => {
+            const val = e.target.value;
+            if (!/^\d$/.test(val)) { e.target.value = ''; return; }
+            if (idx < inputs.length - 1) inputs[idx + 1].focus();
+        });
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && !e.target.value && idx > 0) inputs[idx - 1].focus();
+            if (e.key === 'Enter' && onEnter) onEnter();
+        });
+        input.addEventListener('focus', () => setTimeout(() => input.select(), 0));
     });
+}
 
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Backspace' && !e.target.value && idx > 0) {
-            digitInputs[idx - 1].focus();
-        }
-        if (e.key === 'Enter') {
-            makeGuess();
-        }
-    });
+// ==================== Screen Management ====================
 
-    // Select all text on focus
-    input.addEventListener('focus', () => {
-        setTimeout(() => input.select(), 0);
+function showScreen(id) {
+    ['setupScreen', 'transitionScreen', 'gameScreen', 'winScreen'].forEach(s => {
+        document.getElementById(s).style.display = 'none';
     });
+    document.getElementById(id).style.display = '';
+}
+
+// ==================== Setup Phase ====================
+
+const setupDigits = document.querySelectorAll('#setupDigits .secret-input');
+const setupBadge = document.getElementById('setupBadge');
+const setupMessage = document.getElementById('setupMessage');
+const showSecretToggle = document.getElementById('showSecretToggle');
+
+wireDigitInputs(setupDigits, confirmSecret);
+
+showSecretToggle.addEventListener('change', () => {
+    const type = showSecretToggle.checked ? 'text' : 'password';
+    setupDigits.forEach(inp => inp.type = type);
 });
 
-// Make a guess
-function makeGuess() {
-    if (gameOver) return;
-
-    // Collect digits
-    const guess = [];
-    for (const input of digitInputs) {
-        const val = input.value.trim();
-        if (!/^\d$/.test(val)) {
-            showMessage('יש להזין 4 ספרות!', 'error');
-            input.focus();
-            return;
-        }
-        guess.push(parseInt(val));
+function confirmSecret() {
+    const { valid, digits, error } = validateDigits(setupDigits);
+    if (!valid) {
+        setupMessage.textContent = error;
+        setupMessage.className = 'message error';
+        return;
     }
-
-    // Check for duplicate digits
-    if (new Set(guess).size !== 4) {
-        showMessage('כל הספרות חייבות להיות שונות!', 'error');
+    // First digit shouldn't be 0
+    if (digits[0] === 0) {
+        setupMessage.textContent = 'הספרה הראשונה לא יכולה להיות 0!';
+        setupMessage.className = 'message error';
         return;
     }
 
-    attempts++;
-    const result = calcResult(guess, secret);
+    state.secrets[state.currentSetup] = digits;
+    setupMessage.textContent = '';
+    setupMessage.className = 'message';
 
-    // Animate digit boxes
-    digitInputs.forEach((input, i) => {
-        input.classList.remove('bull', 'hit', 'miss');
-        setTimeout(() => {
-            if (guess[i] === secret[i]) {
-                input.classList.add('bull');
-            } else if (secret.includes(guess[i])) {
-                input.classList.add('hit');
-            } else {
-                input.classList.add('miss');
-            }
-        }, i * 100);
-    });
-
-    // Add to history
-    addHistoryRow(guess.join(''), result.bulls, result.hits);
-
-    // Check win
-    if (result.bulls === 4) {
-        gameOver = true;
-        showMessage(`🎉 כל הכבוד! מצאת את המספר ב-${attempts} ניחושים!`, 'win');
-        guessBtn.disabled = true;
-        launchConfetti();
+    if (state.currentSetup === 0) {
+        // Move to transition → Player 2
+        state.currentSetup = 1;
+        document.getElementById('transitionTitle').textContent = 'תעבירו את המכשיר לשחקן 2';
+        showScreen('transitionScreen');
     } else {
-        showMessage('');
-        // Clear inputs for next guess
-        setTimeout(() => {
-            digitInputs.forEach(input => input.value = '');
-            digitInputs[0].focus();
-        }, 500);
+        // Both secrets set → start game, transition to player 1's turn
+        document.getElementById('transitionTitle').textContent = 'תעבירו את המכשיר לשחקן 1';
+        state.phase = 'transition-to-game';
+        showScreen('transitionScreen');
     }
 }
 
-function addHistoryRow(guessStr, bulls, hits) {
+function onReady() {
+    if (state.phase === 'transition-to-game') {
+        // Start the actual game
+        state.phase = 'game';
+        state.currentTurn = 0;
+        updateTurnUI();
+        showScreen('gameScreen');
+        gameDigits[0].focus();
+    } else if (state.phase === 'transition-turn') {
+        // Continue game — next player's turn
+        state.phase = 'game';
+        updateTurnUI();
+        showScreen('gameScreen');
+        gameDigits[0].focus();
+    } else {
+        // Setup player 2
+        resetSetupInputs();
+        setupBadge.textContent = 'שחקן 2';
+        setupBadge.className = 'player-badge p2';
+        showScreen('setupScreen');
+        setupDigits[0].focus();
+    }
+}
+
+function resetSetupInputs() {
+    setupDigits.forEach(inp => { inp.value = ''; inp.type = 'password'; });
+    showSecretToggle.checked = false;
+    setupMessage.textContent = '';
+    setupMessage.className = 'message';
+}
+
+// ==================== Game Phase ====================
+
+const gameDigits = document.querySelectorAll('#gameDigits .game-digit');
+const guessBtn = document.getElementById('guessBtn');
+const gameMessage = document.getElementById('gameMessage');
+const turnNameEl = document.getElementById('turnName');
+const turnIndicator = document.getElementById('turnIndicator');
+const currentTurnLabel = document.getElementById('currentTurnLabel');
+
+wireDigitInputs(gameDigits, makeGuess);
+
+function updateTurnUI() {
+    const p = state.currentTurn; // 0 or 1
+    const pNum = p + 1;
+    const opNum = p === 0 ? 2 : 1;
+    const icon = p === 0 ? '🟦' : '🟥';
+
+    turnNameEl.textContent = `שחקן ${pNum}`;
+    turnIndicator.className = 'turn-indicator ' + (p === 0 ? 'p1-turn' : 'p2-turn');
+
+    currentTurnLabel.textContent = `${icon} תור שחקן ${pNum} — נחש את המספר של שחקן ${opNum}`;
+    currentTurnLabel.className = 'current-turn-label ' + (p === 0 ? 'p1' : 'p2');
+
+    // Highlight active panel
+    document.getElementById('panel1').classList.toggle('active-panel', p === 0);
+    document.getElementById('panel2').classList.toggle('active-panel', p === 1);
+
+    // Clear game inputs
+    gameDigits.forEach(inp => {
+        inp.value = '';
+        inp.classList.remove('bull', 'hit', 'miss');
+    });
+    gameMessage.textContent = '';
+    gameMessage.className = 'message';
+    guessBtn.disabled = false;
+}
+
+function makeGuess() {
+    if (state.gameOver) return;
+
+    const { valid, digits, error } = validateDigits(gameDigits);
+    if (!valid) {
+        gameMessage.textContent = error;
+        gameMessage.className = 'message error';
+        return;
+    }
+
+    const p = state.currentTurn;
+    const opponentSecret = state.secrets[p === 0 ? 1 : 0]; // guessing the OTHER player's secret
+    state.attempts[p]++;
+
+    const result = calcResult(digits, opponentSecret);
+
+    // Animate digit boxes
+    gameDigits.forEach((input, i) => {
+        input.classList.remove('bull', 'hit', 'miss');
+        setTimeout(() => {
+            if (digits[i] === opponentSecret[i]) input.classList.add('bull');
+            else if (opponentSecret.includes(digits[i])) input.classList.add('hit');
+            else input.classList.add('miss');
+        }, i * 100);
+    });
+
+    // Add to the current player's history
+    const historyEl = document.getElementById(`history${p + 1}`);
+    addHistoryRow(historyEl, digits.join(''), result.bulls, result.hits);
+
+    // Update attempt count
+    document.getElementById(`attempts${p + 1}`).textContent = `${state.attempts[p]} ניחושים`;
+
+    // Check win
+    if (result.bulls === 4) {
+        state.gameOver = true;
+        guessBtn.disabled = true;
+        setTimeout(() => showWinScreen(p), 600);
+        return;
+    }
+
+    // Switch turns after a short delay
+    gameMessage.textContent = '';
+    setTimeout(() => {
+        const nextPlayer = p === 0 ? 1 : 0;
+        state.currentTurn = nextPlayer;
+        state.phase = 'transition-turn';
+        document.getElementById('transitionTitle').textContent = `תעבירו את המכשיר לשחקן ${nextPlayer + 1}`;
+        showScreen('transitionScreen');
+    }, 800);
+}
+
+function addHistoryRow(container, guessStr, bulls, hits) {
     const row = document.createElement('div');
     row.className = 'history-row';
     row.innerHTML = `
@@ -138,34 +228,63 @@ function addHistoryRow(guessStr, bulls, hits) {
         <span class="bulls">${'🎯'.repeat(bulls) || '—'}</span>
         <span class="hits">${'🔥'.repeat(hits) || '—'}</span>
     `;
-    historyEl.insertBefore(row, historyEl.firstChild);
+    container.insertBefore(row, container.firstChild);
 }
 
-function showMessage(text, type = '') {
-    messageEl.textContent = text;
-    messageEl.className = 'message ' + type;
+// ==================== Win Screen ====================
+
+function showWinScreen(winner) {
+    const pNum = winner + 1;
+    document.getElementById('winTitle').textContent = `🎉 שחקן ${pNum} ניצח!`;
+    document.getElementById('winDetails').textContent = `גילה את המספר הסודי ב-${state.attempts[winner]} ניחושים`;
+
+    const summary = document.getElementById('winSummary');
+    summary.innerHTML = `
+        <div>🟦 <strong>שחקן 1</strong> — המספר הסודי: <strong style="direction:ltr;display:inline-block;letter-spacing:2px;">${state.secrets[0].join('')}</strong> (${state.attempts[0]} ניחושים)</div>
+        <div>🟥 <strong>שחקן 2</strong> — המספר הסודי: <strong style="direction:ltr;display:inline-block;letter-spacing:2px;">${state.secrets[1].join('')}</strong> (${state.attempts[1]} ניחושים)</div>
+    `;
+
+    showScreen('winScreen');
+    launchConfetti();
 }
 
-function newGame() {
-    secret = generateSecret();
-    attempts = 0;
-    gameOver = false;
-    historyEl.innerHTML = '';
-    messageEl.textContent = '';
-    messageEl.className = 'message';
-    guessBtn.disabled = false;
-    digitInputs.forEach(input => {
-        input.value = '';
-        input.classList.remove('bull', 'hit', 'miss');
+// ==================== New Game ====================
+
+function resetAll() {
+    state.secrets = [null, null];
+    state.attempts = [0, 0];
+    state.currentSetup = 0;
+    state.currentTurn = 0;
+    state.gameOver = false;
+    state.phase = 'setup';
+
+    // Reset setup
+    resetSetupInputs();
+    setupBadge.textContent = 'שחקן 1';
+    setupBadge.className = 'player-badge p1';
+
+    // Reset game
+    document.getElementById('history1').innerHTML = '';
+    document.getElementById('history2').innerHTML = '';
+    document.getElementById('attempts1').textContent = '0 ניחושים';
+    document.getElementById('attempts2').textContent = '0 ניחושים';
+    gameDigits.forEach(inp => {
+        inp.value = '';
+        inp.classList.remove('bull', 'hit', 'miss');
     });
-    digitInputs[0].focus();
+    gameMessage.textContent = '';
+    gameMessage.className = 'message';
 
-    // Remove confetti if exists
+    // Remove confetti
     const canvas = document.getElementById('confetti');
     if (canvas) canvas.remove();
+
+    showScreen('setupScreen');
+    setupDigits[0].focus();
 }
 
-// ==================== Confetti Effect ====================
+// ==================== Confetti ====================
+
 function launchConfetti() {
     const canvas = document.createElement('canvas');
     canvas.id = 'confetti';
@@ -213,5 +332,9 @@ function launchConfetti() {
     animate();
 }
 
-// Start the game
-newGame();
+// ==================== Init ====================
+
+// Set initial badge style
+setupBadge.className = 'player-badge p1';
+showScreen('setupScreen');
+setupDigits[0].focus();

@@ -15,12 +15,14 @@ body {
     color: #fff;
 }
 
+/* ==================== Shared ==================== */
+
 .container {
     background: rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(20px);
     border-radius: 24px;
     padding: 40px 30px;
-    max-width: 480px;
+    max-width: 500px;
     width: 100%;
     text-align: center;
     box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
@@ -28,7 +30,7 @@ body {
 }
 
 h1 {
-    font-size: 2.5em;
+    font-size: 2.2em;
     margin-bottom: 8px;
     background: linear-gradient(to left, #f7971e, #ffd200);
     -webkit-background-clip: text;
@@ -42,23 +44,16 @@ h1 {
     font-size: 0.95em;
 }
 
-.input-area {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 20px;
-}
-
 .digit-inputs {
     display: flex;
     gap: 12px;
     direction: ltr;
+    justify-content: center;
 }
 
 .digit-box {
-    width: 60px;
-    height: 70px;
+    width: 58px;
+    height: 68px;
     text-align: center;
     font-size: 2em;
     font-weight: bold;
@@ -113,40 +108,14 @@ button {
     font-family: inherit;
 }
 
-#guessBtn {
-    background: linear-gradient(135deg, #f7971e, #ffd200);
-    color: #1a1a2e;
-    font-size: 1.2em;
-    font-weight: bold;
-    padding: 12px 50px;
-    border-radius: 14px;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(255, 210, 0, 0.3);
-}
-
-#guessBtn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 25px rgba(255, 210, 0, 0.45);
-}
-
-#guessBtn:active {
-    transform: translateY(0);
-}
-
-#guessBtn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    transform: none;
-}
-
 .message {
-    min-height: 40px;
+    min-height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.1em;
-    margin-bottom: 20px;
-    padding: 8px;
+    font-size: 1em;
+    margin: 10px 0;
+    padding: 6px 12px;
     border-radius: 10px;
     transition: all 0.3s ease;
 }
@@ -159,77 +128,9 @@ button {
 .message.win {
     color: #00e676;
     background: rgba(0, 230, 118, 0.1);
-    font-size: 1.3em;
+    font-size: 1.2em;
     font-weight: bold;
     animation: pop 0.5s ease;
-}
-
-.history-section {
-    margin-bottom: 24px;
-}
-
-.history-section h2 {
-    font-size: 1.1em;
-    color: #ccc;
-    margin-bottom: 12px;
-}
-
-.history-header {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    padding: 8px 16px;
-    font-weight: bold;
-    font-size: 0.85em;
-    color: #888;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.history {
-    max-height: 320px;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
-}
-
-.history-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    padding: 10px 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    animation: slideIn 0.3s ease;
-    font-size: 1.05em;
-}
-
-.history-row:hover {
-    background: rgba(255, 255, 255, 0.04);
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.history-row .guess-num {
-    direction: ltr;
-    font-weight: bold;
-    letter-spacing: 4px;
-    font-size: 1.1em;
-}
-
-.history-row .bulls {
-    color: #00e676;
-    font-weight: bold;
-}
-
-.history-row .hits {
-    color: #ff9100;
-    font-weight: bold;
 }
 
 .new-game-btn {
@@ -239,7 +140,7 @@ button {
     padding: 10px 30px;
     border-radius: 12px;
     transition: all 0.3s ease;
-    margin-bottom: 30px;
+    margin: 16px auto;
 }
 
 .new-game-btn:hover {
@@ -253,6 +154,7 @@ button {
     padding: 20px;
     text-align: right;
     border: 1px solid rgba(255, 255, 255, 0.06);
+    margin-top: 20px;
 }
 
 .rules h3 {
@@ -263,11 +165,356 @@ button {
 .rules p {
     color: #bbb;
     margin-bottom: 6px;
-    font-size: 0.9em;
+    font-size: 0.85em;
     line-height: 1.6;
 }
 
-/* Confetti canvas */
+/* ==================== Setup Screen ==================== */
+
+.setup-container {
+    max-width: 460px;
+}
+
+.player-badge {
+    display: inline-block;
+    padding: 8px 28px;
+    border-radius: 30px;
+    font-size: 1.3em;
+    font-weight: bold;
+    margin-bottom: 16px;
+}
+
+.player-badge.p1 {
+    background: linear-gradient(135deg, #448aff, #2962ff);
+}
+
+.player-badge.p2 {
+    background: linear-gradient(135deg, #ff5252, #d32f2f);
+}
+
+.setup-instruction {
+    color: #ccc;
+    margin-bottom: 20px;
+    font-size: 0.95em;
+    line-height: 1.7;
+}
+
+.setup-instruction small {
+    color: #999;
+}
+
+.secret-input {
+    font-size: 1.8em;
+    letter-spacing: 0;
+}
+
+.show-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #999;
+    font-size: 0.85em;
+    margin-top: 12px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.show-toggle input {
+    accent-color: #ffd200;
+    cursor: pointer;
+}
+
+#confirmSecretBtn {
+    background: linear-gradient(135deg, #f7971e, #ffd200);
+    color: #1a1a2e;
+    font-size: 1.15em;
+    font-weight: bold;
+    padding: 12px 50px;
+    border-radius: 14px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 210, 0, 0.3);
+    margin-top: 16px;
+}
+
+#confirmSecretBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(255, 210, 0, 0.45);
+}
+
+/* ==================== Transition Screen ==================== */
+
+.transition-container {
+    max-width: 460px;
+    padding: 60px 30px;
+}
+
+.transition-icon {
+    font-size: 4em;
+    margin-bottom: 20px;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.transition-container h2 {
+    font-size: 1.4em;
+    margin-bottom: 12px;
+    color: #ffd200;
+}
+
+.transition-sub {
+    color: #999;
+    margin-bottom: 30px;
+}
+
+#readyBtn {
+    background: linear-gradient(135deg, #00e676, #00c853);
+    color: #1a1a2e;
+    font-size: 1.3em;
+    font-weight: bold;
+    padding: 14px 60px;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0, 230, 118, 0.3);
+}
+
+#readyBtn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 30px rgba(0, 230, 118, 0.5);
+}
+
+/* ==================== Game Screen ==================== */
+
+.game-wrapper {
+    width: 100%;
+    max-width: 900px;
+    text-align: center;
+}
+
+.game-top-bar {
+    margin-bottom: 20px;
+}
+
+.game-top-bar h1 {
+    font-size: 1.8em;
+    margin-bottom: 4px;
+}
+
+.turn-indicator {
+    font-size: 1.15em;
+    color: #ccc;
+    padding: 8px 20px;
+    border-radius: 20px;
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.4s ease;
+}
+
+.turn-indicator.p1-turn {
+    border-color: rgba(68, 138, 255, 0.5);
+    background: rgba(68, 138, 255, 0.1);
+}
+
+.turn-indicator.p2-turn {
+    border-color: rgba(255, 82, 82, 0.5);
+    background: rgba(255, 82, 82, 0.1);
+}
+
+.game-panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.player-panel {
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 18px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    transition: all 0.4s ease;
+}
+
+.player-panel.active-panel {
+    border-color: rgba(255, 210, 0, 0.4);
+    box-shadow: 0 0 25px rgba(255, 210, 0, 0.1);
+}
+
+.panel-header {
+    padding: 12px 16px;
+    font-weight: bold;
+    font-size: 1.05em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.panel-header .attempt-count {
+    margin-right: auto;
+    font-size: 0.8em;
+    font-weight: normal;
+    color: #999;
+}
+
+.p1-color {
+    background: linear-gradient(135deg, rgba(68, 138, 255, 0.2), rgba(41, 98, 255, 0.1));
+}
+
+.p2-color {
+    background: linear-gradient(135deg, rgba(255, 82, 82, 0.2), rgba(211, 47, 47, 0.1));
+}
+
+.history-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    padding: 6px 14px;
+    font-weight: bold;
+    font-size: 0.78em;
+    color: #777;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.history {
+    max-height: 280px;
+    min-height: 60px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.history-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    padding: 8px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    animation: slideIn 0.3s ease;
+    font-size: 0.95em;
+}
+
+.history-row:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.history-row .guess-num {
+    direction: ltr;
+    font-weight: bold;
+    letter-spacing: 3px;
+    font-size: 1.05em;
+}
+
+.history-row .bulls { color: #00e676; font-weight: bold; }
+.history-row .hits { color: #ff9100; font-weight: bold; }
+
+.game-input-area {
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 18px;
+    padding: 24px 20px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.current-turn-label {
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-bottom: 16px;
+    padding: 8px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.current-turn-label.p1 {
+    color: #82b1ff;
+}
+
+.current-turn-label.p2 {
+    color: #ff8a80;
+}
+
+#guessBtn {
+    background: linear-gradient(135deg, #f7971e, #ffd200);
+    color: #1a1a2e;
+    font-size: 1.15em;
+    font-weight: bold;
+    padding: 12px 50px;
+    border-radius: 14px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 210, 0, 0.3);
+    margin-top: 14px;
+}
+
+#guessBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(255, 210, 0, 0.45);
+}
+
+#guessBtn:active { transform: translateY(0); }
+
+#guessBtn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ==================== Win Screen ==================== */
+
+.win-container {
+    max-width: 500px;
+    padding: 50px 30px;
+}
+
+.win-trophy {
+    font-size: 5em;
+    margin-bottom: 16px;
+    animation: pop 0.6s ease;
+}
+
+.win-container h1 {
+    font-size: 2em;
+    margin-bottom: 8px;
+}
+
+.win-container p {
+    color: #ccc;
+    margin-bottom: 20px;
+}
+
+.win-summary {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 14px;
+    padding: 16px 20px;
+    text-align: right;
+    margin-bottom: 20px;
+    font-size: 0.95em;
+    line-height: 2;
+    color: #bbb;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.win-new-game {
+    font-size: 1.2em;
+    padding: 14px 40px;
+    background: linear-gradient(135deg, #f7971e, #ffd200);
+    color: #1a1a2e;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(255, 210, 0, 0.3);
+}
+
+.win-new-game:hover {
+    box-shadow: 0 6px 25px rgba(255, 210, 0, 0.45);
+}
+
+/* ==================== Confetti ==================== */
+
 #confetti {
     position: fixed;
     top: 0;
@@ -278,14 +525,15 @@ button {
     z-index: 1000;
 }
 
-/* Responsive */
-@media (max-width: 500px) {
-    .container {
-        padding: 24px 16px;
+/* ==================== Responsive ==================== */
+
+@media (max-width: 700px) {
+    .game-panels {
+        grid-template-columns: 1fr;
     }
 
-    h1 {
-        font-size: 2em;
+    .game-wrapper {
+        max-width: 500px;
     }
 
     .digit-box {
@@ -293,4 +541,20 @@ button {
         height: 60px;
         font-size: 1.6em;
     }
+
+    h1 { font-size: 1.8em; }
+}
+
+@media (max-width: 400px) {
+    .container, .game-input-area {
+        padding: 20px 12px;
+    }
+
+    .digit-box {
+        width: 44px;
+        height: 54px;
+        font-size: 1.4em;
+    }
+
+    .digit-inputs { gap: 8px; }
 }
