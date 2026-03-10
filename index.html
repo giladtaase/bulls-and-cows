@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>בול פגיעה 🎯</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 בול פגיעה</h1>
+        <p class="subtitle">נחשו את המספר בן 4 הספרות (ספרות שונות)</p>
+
+        <div class="input-area">
+            <div class="digit-inputs" id="digitInputs">
+                <input type="text" maxlength="1" class="digit-box" id="d1" inputmode="numeric" autocomplete="off">
+                <input type="text" maxlength="1" class="digit-box" id="d2" inputmode="numeric" autocomplete="off">
+                <input type="text" maxlength="1" class="digit-box" id="d3" inputmode="numeric" autocomplete="off">
+                <input type="text" maxlength="1" class="digit-box" id="d4" inputmode="numeric" autocomplete="off">
+            </div>
+            <button id="guessBtn" onclick="makeGuess()">נחש!</button>
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <div class="history-section">
+            <h2>היסטוריית ניחושים</h2>
+            <div class="history-header">
+                <span>ניחוש</span>
+                <span>בול 🎯</span>
+                <span>פגיעה 🔥</span>
+            </div>
+            <div id="history" class="history"></div>
+        </div>
+
+        <button id="newGameBtn" class="new-game-btn" onclick="newGame()">משחק חדש</button>
+
+        <div class="rules">
+            <h3>📖 חוקי המשחק</h3>
+            <p><strong>בול 🎯</strong> — ספרה נכונה במיקום הנכון</p>
+            <p><strong>פגיעה 🔥</strong> — ספרה נכונה במיקום שגוי</p>
+            <p>המטרה: לגלות את המספר הסודי בכמה שפחות ניחושים!</p>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
